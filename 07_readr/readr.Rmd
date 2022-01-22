@@ -1,6 +1,6 @@
 ---
 title: "读取数据"
-author: "王小二"
+author: "王梦云"
 date: "`r Sys.Date()`"
 output: 
   html_document:
@@ -29,4 +29,17 @@ output:
 | mom_iq     	| 母亲IQ值         	|
 | mom_age    	| 母亲年龄         	|
 
+
+Answer:
+```{r}
+kidiq <- readr::read_rds('./demo_data/kidiq.RDS')
+kidiq
+```
+```{r}
+
+typeof(kidiq[['kid_score']])
+typeof(kidiq[['mom_hs']])
+typeof(kidiq[['mom_iq']])
+typeof(kidiq[['mom_age']])
+```
 

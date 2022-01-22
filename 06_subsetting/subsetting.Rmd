@@ -1,7 +1,7 @@
 ---
 title: "子集选取"
 subtitle: "subsetting"
-author: "王小二"
+author: "王梦云"
 date: "`r Sys.Date()`"
 output: 
   html_document:
@@ -192,10 +192,40 @@ df[1:3, ]
 ## 习题
 
 - 对数据框，思考`df["x"]`， `df[["x"]]`， `df$x`三者的区别?
+```{r}
+df["x"] 
+
+df[["x"]]
+
+df$x
+
+```
+
+Answer: df["x"] 输出带有表头的x列的数据，df[["x"]]输出不带表头的x列的数据, df$x的作用和df[["x"]]一样
+
 - 如果`x`是一个矩阵，请问 `x[] <- 0` 和`x <- 0` 有什么区别？
+```{r}
+x <- matrix(1:9, nrow = 3)
+
+print("x[] <- 0")
+x[] <- 0
+print(x)
+
+print("x <- 0")
+x <- 0
+print(x)
+```
+
+Answer: x[] <- 0 是将矩阵中的值都设置为0，x <- 0是将长度为1的一个向量值0赋值给x
+
 - 找出向量`a`中的偶数
 ```{r}
 a <- 1:10
 a
 ```
+Answer: 
+```{r}
+a[a%%2 == 0]
+```
+
 
