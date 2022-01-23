@@ -36,10 +36,9 @@ kidiq <- readr::read_rds('./demo_data/kidiq.RDS')
 kidiq
 ```
 ```{r}
-
-typeof(kidiq[['kid_score']])
-typeof(kidiq[['mom_hs']])
-typeof(kidiq[['mom_iq']])
-typeof(kidiq[['mom_age']])
+kidiq %>% 
+  summarise(
+    across(everything(), typeof)
+  )
 ```
 

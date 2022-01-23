@@ -42,10 +42,10 @@ mom_iq: double 双精度浮点
 mom_age: int 整型
 验证代码如下
 ```{r}
-typeof(kidiq[['kid_score']])
-typeof(kidiq[['mom_hs']])
-typeof(kidiq[['mom_iq']])
-typeof(kidiq[['mom_age']])
+kidiq %>% 
+  summarise(
+    across(everything(), typeof)
+  )
 
 ```
 
@@ -60,24 +60,26 @@ print(mean_score)
 3. 统计母亲完成高中的比例
 Answer:
 ```{r}
-percent <- mean(kidiq[['mom_hs']])  * 100
-print(percent)
+kidiq %>%
+  summarise(
+    prop = sum(mom_hs) / n()
+  )
 ```
 
 
 4. 构建新的一列`index`，其中 $index = mom_iq/mom_age$
 Answer:
 ```{r}
-kidiq['index'] <- kidiq['mom_iq']/kidiq['mom_age']
-print(kidiq)
+kidiq %>%
+  mutate(index = mom_iq / mom_age)
 ```
 
 
 5. 中心化 mom_iq，然后放到新的一列（提示：中心化 = mom_iq值 - 全部mom_iq的均值，`mom_iq - mean(mom_iq)`）
 Answer:
 ```{r}
-kidiq['mom_iq_center'] <- kidiq['mom_iq'] - mean(kidiq[['mom_age']])
-print(kidiq)
+kidiq %>%
+  mutate(mom_iq_c = mom_iq - mean(mom_iq))
 ```
 
 
@@ -86,14 +88,13 @@ print(kidiq)
 
 Answer:
 ```{r}
-mom_iq_mean_by_group <- aggregate(x=kidiq[c('mom_iq')], by=kidiq[c('mom_hs')], FUN=mean)
-print(mom_iq_mean_by_group)
-
-kid_score_mean_by_group <- aggregate(x=kidiq[c('kid_score')], by=kidiq[c('mom_hs')], FUN=mean)
-print(kid_score_mean_by_group)
-
-mom_age_max_by_group <- aggregate(x=kidiq[c('mom_age')], by=kidiq[c('mom_hs')], FUN=max)
-print(mom_age_max_by_group)
+kidiq %>%
+  group_by(mom_hs) %>%
+  summarise(
+    mean_iq    = mean(mom_iq),
+    mean_score = mean(kid_score),
+    max_age    = max(mom_age)
+  )
 ```
 
 
@@ -140,27 +141,29 @@ babynames %>% select(ends_with("n"))
 3. 选出 `prop` 大于0.08 的所有 `name`
 Answer:
 ```{r}
-babynames[which(babynames$prop > 0.08),]['name']
+babynames %>% 
+  filter(prop > 0.08) %>% 
+  select(name)
 ```
 
 
 4. 显示所有名叫 "Sea" 的儿童的行
 Answer:
 ```{r}
-babynames[which(babynames$name == 'Sea'),]
+babynames %>% filter(name == "Sea")
 ```
 
 
 5. 找出 `n` 有**缺失值**的行
 Answer:
 ```{r}
-babynames[which(is.na(babynames$n)),]
+babynames %>% filter(is.na(n))
 ```
 
 6. 找出名叫 "Sea" 或者 "Anemone" 的儿童
 Answer:
 ```{r}
-babynames[which(babynames$name == 'Sea' | babynames$name == 'Anemone'),]
+babynames %>% filter(name %in% c("Sea", "Anemone"))
 
 ```
 
@@ -168,24 +171,34 @@ babynames[which(babynames$name == 'Sea' | babynames$name == 'Anemone'),]
 7. 只使用了5次或者6次的姓名
 Answer:
 ```{r}
-babynames[which(babynames$n == 6 | babynames$n == 5),]
-
+babynames %>%
+  group_by(name) %>%
+  summarise(
+    sum_n = sum(n)
+  ) %>%
+  filter(sum_n %in% c(5, 6))
 ```
 
 
 8. 列出最常用的姓名（先按 `n` 从大往小排）
 Answer:
 ```{r}
-babynames[order(babynames$n, decreasing=TRUE),]
-
+babynames %>%
+  group_by(name) %>%
+  summarise(
+    num = sum(n)
+  ) %>%
+  arrange(desc(num))
 ```
 
 
 9. 2015年使用最多的女孩姓名
 Answer:
 ```{r}
-sort_names <- babynames[order(babynames$n, decreasing=TRUE),]
-sort_names[which(sort_names$sex == 'F' & sort_names$year==2015),][1,]
+babynames %>%
+  filter(year == "2015", sex == "F") %>%
+  arrange(desc(n)) %>% 
+  slice(1)
 
 ```
 
@@ -193,24 +206,32 @@ sort_names[which(sort_names$sex == 'F' & sort_names$year==2015),][1,]
 
 Answer:
 ```{r}
-number_by_sex <- aggregate(x=babynames[c('n')], by=babynames[c('sex')], FUN=sum)
-print(number_by_sex)
+babynames %>%
+  group_by(sex) %>%
+  summarise(
+    num = sum(n)
+  )
 ```
 
 11. 统计每年男孩女孩的人数
 
 Answer:
 ```{r}
-number_by_sex_and_year <- aggregate(x=babynames[c('n')], by=babynames[c('sex', 'year')], FUN=sum)
-print(number_by_sex_and_year)
+babynames %>%
+  group_by(year, sex) %>%
+  summarise(
+    num = sum(n)
+  )
 ```
 
 12. 统计名叫 `Khaleesi` 的人数
 Answer:
 ```{r}
-khaleesi_all <- babynames[which(babynames$name == 'Khaleesi'),]
-number_of_khaleesi <- aggregate(x=khaleesi_all[c('n')], by=khaleesi_all[c('name')], FUN=sum)
-print(number_of_khaleesi)
+babynames %>%
+  filter(name == "Khaleesi") %>%
+  summarise(
+    num = sum(n)
+  )
 
 ```
 
@@ -218,32 +239,23 @@ print(number_of_khaleesi)
 13. 第一次使用 `Khaleesi` 这个名字是哪一年？
 Answer:
 ```{r}
-khaleesi_all <- babynames[which(babynames$name == 'Khaleesi'),]
-sort_names <- khaleesi_all[order(khaleesi_all$year, decreasing=FALSE),]
-print(sort_names[1,])
+babynames %>%
+  filter(name == "Khaleesi") %>%
+  arrange(year) %>% 
+  slice(1)
+babynames %>%
+  filter(name == "Khaleesi") %>%
+  slice_min(year)
 ```
 
 
 14. 找出最受欢迎的姓名（分男孩女孩）
 
 ```{r}
-
-filtered_boy_names <- babynames[which(babynames$sex == 'M'),]
-group_boy_names <-  filtered_boy_names %>%
-  group_by(filtered_boy_names$name ) %>%
-  summarise(total_number=sum(n) )   
-ordered_group_boy_names <- group_boy_names[order(group_boy_names$total_number, decreasing=TRUE),]
-popular_boy_name <- ordered_group_boy_names[1,]
-print(popular_boy_name)
-
-filtered_girl_names <- babynames[which(babynames$sex == 'F'),]
-group_girl_names <-  filtered_girl_names %>%
-  group_by(filtered_girl_names$name ) %>%
-  summarise(total_number=sum(n) )   
-ordered_group_girl_names <- group_girl_names[order(group_girl_names$total_number, decreasing=TRUE),]
-popular_girl_name <- ordered_group_girl_names[1,]
-print(popular_girl_name)
-
+babynames %>%
+  group_by(sex, name) %>%
+  summarise(num = sum(n)) %>%
+  slice_max(num)
 ```
 
 15. 统计每年使用最多的名字的数量与使用最少的名字数量的差距
